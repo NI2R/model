@@ -1,0 +1,16 @@
+<!--
+Copyright (c) 2020, NI2R.
+-->
+<launch>
+    <arg name="display"		default="false" />
+
+    <node name="Template_pub" pkg="model" type="Template_pub" />
+    <node name="Template_sub" pkg="model" type="Template_sub" output="screen">
+      <!--<remap from="{topic_1}" to="{topic_2}" />
+      <param name="{nom_param}"	value="{value}" /> -->
+    </node>
+
+    <group if="$(arg display)">
+      <node name="rviz" pkg="rviz" type="rviz" args="-d $(find model)/rviz/example.rviz" output="screen" />
+    </group>
+</launch>

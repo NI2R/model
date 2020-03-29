@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import rospy
+from std_msgs.msg import String as ROS_String
+import time
+
+## ROS conversion
+def talker():
+    pub = rospy.Publisher('chatter', ROS_String, queue_size=10)
+    while not rospy.is_shutdown():
+        pub.publish("hello world %s" % rospy.get_time())
+        rate.sleep()
+
+## Programme principal
+def main():
+	talker()
+
+if __name__ == '__main__':
+	try:
+		rospy.init_node('template_pub', anonymous=True)
+		rate = rospy.Rate(1)
+		main()
+		rospy.spin()
+	except rospy.ROSInterruptException:
+		pass

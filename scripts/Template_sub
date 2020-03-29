@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import rospy
+from std_msgs.msg import String as ROS_String
+import time
+
+## ROS conversion
+def callback(data):
+	print(data)
+def listeners():
+	rospy.Subscriber('chatter', ROS_String, callback)
+
+## Programme principal
+def main():
+	listeners()
+
+if __name__ == '__main__':
+	try:
+		rospy.init_node('template_sub', anonymous=True)
+		rate = rospy.Rate(1)
+		main()
+		rospy.spin()
+	except rospy.ROSInterruptException:
+		pass
