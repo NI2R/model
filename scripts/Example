@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import time
+import numpy as np
+
+import rospy
+from geometry_msgs.msg	import PoseStamped as ROS_Pose
+
+ROS_Frequency = 1
+
+class Goaler:
+	def __init__(self):
+		self._current_position			= (0, 0)
+		self.goal						= (0, 0)
+		self.robot						= Robot_properties()
+
+	@property
+	def current_position(self):
+		self._current_position = self.robot.current_position
+		return self._current_position
+
+	@staticmethod
+	def euclidianDistance(A, B):
+		return np.sqrt(np.square(A[0] - B[0]) + np.square(A[1] - B[1]))
+
+	def current_statut(self):
+		if Goaler.euclidianDistance(self.current_position, self.goal) < 10:
+			self.goal = (self.goal[0] + 100, self.goal[1])
+			self.robot.publishGoal(self.goal)
+
+
+class Robot_properties:
+	def __init__(self):
+		''' Robot properties in ROS '''
+		self.current_position = (0, 0)
+
+		self.position_topic = 'modelNI2R/pose'
+		self.goal_topic = 'move_base_simple/goal'
+
+		rospy.Subscriber(self.position_topic,ROS_Pose,self.updatePosition,queue_size=1)
+		self.pub = rospy.Publisher(self.goal_topic,ROS_Pose,queue_size=1)
+
+	def updatePosition(self, data):
+		self.current_position = (data.pose.position.x, data.pose.position.y)
+
+	def publishGoal(self, goal):
+		'''Convert the goal position to a ROS message and publish it'''
+		Msg = ROS_Pose()
+		Msg.pose.position.x = goal[0]
+		Msg.pose.position.y = goal[1]
+		Msg.pose.orientation.w = 1.0
+		Msg.header.stamp = rospy.Time.now()
+		Msg.header.frame_id = "map"
+		self.pub.publish(Msg)
+
+if __name__ ==  '__main__':
+	try:
+		goaler = Goaler()
+		rospy.init_node('Goaler', anonymous=True)
+		rate = rospy.Rate(ROS_Frequency)
+		while not rospy.is_shutdown():
+			goaler.current_statut()
+			rate.sleep()
+		#rospy.spin()
+	except rospy.ROSInterruptException:
+		pass
