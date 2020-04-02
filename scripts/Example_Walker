@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import rospy
+import random
+from geometry_msgs.msg	import PoseStamped as ROS_Pose #Type spécifique ROS relatif à la position dans l'espace
+
+def walker():
+    """Fonction simulant une avancée aléatoire sur l'axe X et publie dans ROS la position"""
+    pub = rospy.Publisher('positionActuelle', ROS_Pose, queue_size=10) #Notification à ROS de la création d'un publisher
+    posX = 0.0 #Variable de position
+    while not rospy.is_shutdown():
+	Msg = ROS_Pose() #Variable de type spécifique ROS relatif à la position dans l'espace
+        Msg.header.frame_id = "map" #Pour utiliser un visualiseur
+	posX += random.random()/10.0 #Incrémentation aléatoire de la position
+	Msg.pose.position.x = posX 
+	pub.publish(Msg) #Publication de la nouvelle position
+        rospy.sleep(1) #Repos du script pendant 1 seconde / Actualisation toutes les secondes
+
+def main():
+	rospy.init_node('Walker') #Nom du script dans ROS
+	walker()
+
+if __name__ == '__main__':
+	"""Point d'entrée du script"""
+	try:
+		main()
+	except rospy.ROSInterruptException:
+		pass

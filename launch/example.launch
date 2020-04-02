@@ -1,0 +1,15 @@
+<!--
+Copyright (c) 2020, NI2R.
+-->
+<launch>
+    <arg name="display" default="false" /> <!--Argument pour démarrer le visualiseur rviz-->
+
+    <node name="Repere" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 map my_frame 100" /> <!--Définition d'un repère spatial-->
+    <node name="Walker" pkg="model" type="Example_Walker" /> <!--Lancement du script Example_Walker-->
+    <node name="Goaler" pkg="model" type="Example_Goaler" output="screen" /> <!--Lancement du script Example_Goaler, affichage du print dans le terminal avec output="screen"-->
+
+    <group if="$(arg display)">
+      <node name="rviz" pkg="rviz" type="rviz" args="-d $(find model)/rviz/example.rviz" output="screen" /> <!--Démarrer le visualiseur rviz avec la configuration-->
+    </group>
+
+</launch>

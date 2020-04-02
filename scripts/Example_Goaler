@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import os
+import random
+import rospy
+from geometry_msgs.msg	import PoseStamped as ROS_Pose #Type spécifique ROS relatif à la position dans l'espace
+
+class Goaler:
+	"""Fonction simulant une arrivée à l'objectif et demande la publication dans ROS de la nouvelle position objectif"""
+	def __init__(self):
+		self.goal = 0 #Variable pour la position de l'objectif
+		self.robot = Robot_properties() #Liaison avec l'interface ROS
+
+	def set_new_goal(self):
+		if self.goal - self.robot.current_position < 0.1: #Si l'objectif est à moins de 0.1 de la position actuelle
+			self.goal += random.random() #Définition dans nouvel objectif aléatoire plus éloigné
+			self.robot.publishGoal(self.goal) #Demande de publication du nouvel objectif
+			print ("Nouvel objectif: %s" % self.goal) 
+
+class Robot_properties:
+	"""Interface/passerelle entre le code traditionnel et ROS (conversion de message)"""
+	def __init__(self):
+		self.current_position = 0 #Variable de position
+		rospy.Subscriber('positionActuelle', ROS_Pose, self.updatePosition) #Notification à ROS de la création d'un subscriber
+		self.pub = rospy.Publisher('objectif', ROS_Pose, queue_size=10) #Notification à ROS de la création d'un publisher
+
+	def updatePosition(self, ros_data):
+		self.current_position = ros_data.pose.position.x
+
+	def publishGoal(self, goal):
+		Msg = ROS_Pose() #Type spécifique ROS relatif à la position dans l'espace
+		Msg.header.frame_id = "map" #Pour utiliser un visualiseur
+		Msg.pose.position.x = goal
+		self.pub.publish(Msg) #Publication de l'objectif
+
+def main():
+	rospy.init_node('Goaler') #Nom du script dans ROS
+	goaler = Goaler()
+	while not rospy.is_shutdown():
+		goaler.set_new_goal() #Défini un nouvel objectif (si atteint)
+		rospy.sleep(2) #Repos du script pendant 2 secondes / Actualisation toutes les 2 secondes
+
+if __name__ ==  '__main__':
+	"""Point d'entrée du script"""
+	try:
+		main()
+	except rospy.ROSInterruptException:
+		pass
